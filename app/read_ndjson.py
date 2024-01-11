@@ -14,7 +14,6 @@ def read_ndjson(file_path: str) -> dict:
     Returns:
         dict: Dictionary with file name as key and description as value. 
     """
-
     # Create empty dictionary. 
     data = {}
 
