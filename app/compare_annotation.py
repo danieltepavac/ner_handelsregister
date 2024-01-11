@@ -39,24 +39,24 @@ def jaccard_similarity(path1: str, path2: str) -> float:
     """    
     # Open both datasets. 
     with open(path1, "r") as f: 
-        list1 = json.load(f)
+        data1 = json.load(f)
 
     with open(path2, "r") as f: 
-        list2 = json.load(f)
+        data2 = json.load(f)
 
     # Create empty sets. 
     entities_set1 = set()
     entities_set2 = set()
 
     # Extract entities from the first list.
-    for item in list1:
+    for item in data1:
         # Check if item is of type "dict" and if "entities" is said "dict".
         if isinstance(item, dict) and "entities" in item:
             # Update the created set with each entity. frozenset is used because the set should be immutable. 
             entities_set1.update(frozenset(entity) for entity in item["entities"])
 
     # Extract entities from the second list.
-    for item in list2:
+    for item in data2:
         # Check if item is of type "dict" and if "entities" is said "dict".
         if isinstance(item, dict) and "entities" in item:
             # Update the created set with each entity. frozenset is used because the set should be immutable.
