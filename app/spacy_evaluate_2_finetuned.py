@@ -15,7 +15,7 @@ model_directory = Path(Path(__file__).parent, "ner2_finetuned")
 nlp = spacy.load(model_directory)
 
 # Path to evaluation data. 
-test_path = Path(Path(__file__).parent, "../data/tuple_test_data.json")
+test_path = Path(Path(__file__).parent, "../data/test_data.json")
 
 # Open EVALUATION_DATA.
 with open(test_path, "r") as f:
