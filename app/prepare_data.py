@@ -34,8 +34,8 @@ def transform_into_spacy_format(filepath: str, savepath: str) -> None:
             data = json.loads(line)
             annotated_data.append(data)
 
-    # Create empty list for formatted training_data.
-    training_data = []
+    # Create empty list for formatted transformed_data.
+    transformed_data = []
 
     # Iterate over annotated_data.
     for doc in annotated_data:
@@ -64,11 +64,11 @@ def transform_into_spacy_format(filepath: str, savepath: str) -> None:
         formatted_data.append(temp_dict)
 
         # Append newly formatted document in training_data.
-        training_data.append(formatted_data)
+        transformed_data.append(formatted_data)
     
     # Save training_data in a new file. 
     with open(savepath, "w", encoding="utf-8") as f: 
-        json.dump(training_data, f, indent=2, ensure_ascii=False)
+        json.dump(transformed_data, f, indent=2, ensure_ascii=False)
 
 
 def sort_dataset(file_path: str, save_path: str) -> None:
@@ -109,10 +109,11 @@ def split_dict(data: json, ratios: tuple[float, float, float] = (0.7, 0.1, 0.2))
     
     # Split data into three parts. 
     train_data = data[:split1]
-    validation_data = data[split1:split2]
+    evaluation_data = data[split1:split2]
     test_data = data[split2:]
 
-    return train_data, validation_data, test_data
+    return train_data, evaluation_data, test_data
+
 
 def save_file(data: list, save_path: str) -> None: 
     """ Save data to a json-file.
