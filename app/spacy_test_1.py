@@ -17,7 +17,7 @@ from tqdm import tqdm
 import pickle
 
 # Save relative path of target JSON file. 
-path = Path(Path(__file__).parent, "../data/tuple_train_data.json")
+path = Path(Path(__file__).parent, "../data/train_data.json")
 
 # Read it and save it as TRAIN_DATA.
 with open(path, "r") as f: 
@@ -35,7 +35,7 @@ if model is not None:
     nlp = spacy.load(model)  
     print("Loaded model '%s'" % model)
 else:
-    nlp = spacy.load('de_core_news_lg')  
+    nlp = spacy.blank("de")  
     print("Created blank 'de' model")
 
 # Set up pipeline by adding "ner" to pipeline if it is not present. Otherwise, just get the "ner"-pipeline.
@@ -48,8 +48,9 @@ else:
 # Iterate through TRAIN_DATA by focusing on "annotations". _ means other parts are denoted because their irrelevant for the loop.
 for _, annotations in TRAIN_DATA:
     # Get "entities" of annotation and add them to the ner model. 
-    for ent in annotations.get('entities'):
+    for ent in annotations.get("entities"):
         ner.add_label(ent[2])
+    
 # Create empty list for example. 
 example = []
 

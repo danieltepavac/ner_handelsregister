@@ -17,8 +17,8 @@ from tqdm import tqdm
 import pickle
 
 # Save relative path of target JSON file. 
-train_path = Path(Path(__file__).parent, "../data/tuple_train_data.json")
-val_path = Path(Path(__file__).parent, "../data/tuple_val_data.json")
+train_path = Path(Path(__file__).parent, "../data/train_data.json")
+val_path = Path(Path(__file__).parent, "../data/eval_data.json")
 
 # Read train_path and save it as TRAIN_DATA.
 with open(train_path, "r") as f: 
