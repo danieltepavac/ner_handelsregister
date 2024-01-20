@@ -1,30 +1,8 @@
 import json
 from pathlib import Path
 
-
-s_sorted_annotation = Path(Path(__file__).parent, "../data/selina_sorted_tuple_annotation.json")
-t_sorted_annotation = Path(Path(__file__).parent, "../data/teppi_sorted_tuple_annotation.json")
-
-#TODO: necessary function? 
-def get_entities(file_path: str) -> list:
-    """Get entities out of a labeled dataset. 
-
-    Args:
-        file_path (str): Path to the annotated file. 
-
-    Returns:
-        list: List of all entities. 
-    """    
-    with open(file_path, "r") as f: 
-        data = json.load(f)
-    
-    all_entities = []
-    
-    for doc in data: 
-        entities = doc.get("entities")
-        all_entities.append(entities)
-    
-    return all_entities
+s_sorted_annotation = Path(Path(__file__).parent, "../data/annotation_comparison/selina_sorted_tuple_annotation.json")
+t_sorted_annotation = Path(Path(__file__).parent, "../data/annotation_comparison/teppi_sorted_tuple_annotation.json")
 
 def jaccard_similarity(path1: str, path2: str) -> float:
     """ Compute Jaccard Similarity for two annoated datasets to see how similar annotated they are.
@@ -76,6 +54,15 @@ def jaccard_similarity(path1: str, path2: str) -> float:
 
 similarity = jaccard_similarity(s_sorted_annotation, t_sorted_annotation)
 print(f"Jaccard Similarity: {similarity}")
+
+# Save to JSON
+json_data = {"Jaccard Similarity": similarity}
+
+json_file_path = Path(Path(__file__).parent, "../results/jaccard_similarity.json")
+
+with open(json_file_path, 'w') as json_file:
+    json.dump(json_data, json_file)
+
 
 
 
