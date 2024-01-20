@@ -1,0 +1,17 @@
+{
+  "count_train": {
+    "warning": 259,
+    "entities": 11971,
+    "error_percentage": 2.1635619413582825
+  },
+  "count_test": {
+    "warning": 74,
+    "entities": 3445,
+    "error_percentage": 2.1480406386066764
+  },
+  "count_eval": {
+    "warning": 30,
+    "entities": 1639,
+    "error_percentage": 1.8303843807199511
+  }
+}
