@@ -52,6 +52,31 @@ def jaccard_similarity(path1: str, path2: str) -> float:
     return similarity
 
 
+def count_entities(path: str) -> int: 
+
+    with open(path, "r") as f: 
+        data = json.load(f)
+    
+    list_of_entities = []
+    
+    for i in data: 
+
+        for key, value in i.items(): 
+            if key == "entities": 
+                for entity in value: 
+                    list_of_entities.append(entity)
+    
+    return list_of_entities
+
+
+
+
+t_count = count_entities(t_sorted_annotation)
+s_count = count_entities(s_sorted_annotation)
+
+print(len(t_count), len(s_count))
+
+
 similarity = jaccard_similarity(s_sorted_annotation, t_sorted_annotation)
 print(f"Jaccard Similarity: {similarity}")
 
