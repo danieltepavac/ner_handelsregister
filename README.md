@@ -12,7 +12,7 @@ spacy_test_0.py offers a possibilty to check a concrete example, on how the mode
 Proving the validity of the models are tests conducted in the realm of an evaluation, Cross-Validation, Wilcoxon signed-paired test. There are respective scripts. 
 
 Results: <br>
-All images and tables contained in the Master Thesis are saved here as well. 
+All images and information on which the tables are built on in the Master Thesis are saved here as well. 
 
 Data: <br>
 The data utilized in this master's thesis is not available for public access due to confidentiality reasons, as it was obtained from proprietary sources. However, a detailed summary of the dataset used in this research, including its structure, characteristics, and key findings derived from the data analysis, is provided within the thesis document. This summary aims to offer insights into the research methodology and results.
