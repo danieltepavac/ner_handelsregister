@@ -1,0 +1,49 @@
+{
+  "word_counts": {
+    "total_words": 77785,
+    "unique_words": 11805,
+    "avergae_word_length": 8.584649996786013
+  },
+  "word_frequencies": [
+    [
+      "gesellschaft",
+      1994
+    ],
+    [
+      "geschäftsführer",
+      1459
+    ],
+    [
+      "handelsregister",
+      1343
+    ],
+    [
+      "gmbh",
+      1133
+    ],
+    [
+      "amtsgericht",
+      858
+    ],
+    [
+      "sitz",
+      849
+    ],
+    [
+      "eintragung",
+      804
+    ],
+    [
+      "notar",
+      607
+    ],
+    [
+      "firma",
+      592
+    ],
+    [
+      "wohnhaft",
+      538
+    ]
+  ]
+}
