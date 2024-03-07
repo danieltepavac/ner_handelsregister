@@ -1,0 +1,27 @@
+[
+    {
+      "Precision": 0.903440,
+      "Recall": 0.866525,
+      "F1 score": 0.884598
+    },
+    {
+      "Precision": 0.900623,
+      "Recall": 0.872097,
+      "F1 score": 0.886130
+    },
+    {
+      "Precision": 0.897126,
+      "Recall": 0.865188,
+      "F1 score": 0.880867
+    },
+    {
+      "Precision": 0.893822,
+      "Recall": 0.897444,
+      "F1 score": 0.895629
+    },
+    {
+      "Precision": 0.912122,
+      "Recall": 0.882424,
+      "F1 score": 0.897027
+    }
+  ]
