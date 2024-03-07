@@ -6,7 +6,7 @@ This study explores Named Entity Recognition (NER) in documents from the German 
 
 Usage: <br>
 In data_transformation.py there are functions provided transforming the data into the necessary spaCy format. 
-Then, it can be trained with the train.py script. 
+Then, it can be trained with the train.py script. <br>
 spacy_test_0.py offers a possibilty to check a concrete example, on how the model has worked. 
 
 Proving the validity of the models are tests conducted in the realm of an evaluation, Cross-Validation, Wilcoxon signed-paired test. There are respective scripts. 
