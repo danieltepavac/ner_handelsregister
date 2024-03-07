@@ -1,8 +1,15 @@
-# Import own scripts.
-from utils.read_ndjson import read_ndjson
-from preprocessing import preprocess_text
+# Import necessary modules.
+import nltk
+from nltk.corpus import stopwords
 
-# Import tqdm for progress bar.
+# Download NLTK data for punctuation and stopwords.
+nltk.download("punkt")  
+nltk.download("stopwords")
+
+# As well as for German. 
+nltk.download("stopwords-de")
+
+from pathlib import Path
 from tqdm import tqdm
 
 # Import json.
@@ -17,12 +24,38 @@ from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
-# Save file_path and read it in. 
-file_path = "1000_sample.ndjson"
-sample = read_ndjson(file_path)
+data_path = Path(Path(__file__).parent, "../data/1000_sample.json")
 
-# Preprocess the text of the sample and save it in a new dictionary with key: filename and text as value.
-preprocessed_sample = {filename: preprocess_text(text) for filename, text in sample.items()}
+with open(data_path, "r") as f: 
+    sample = json.load(f)
+
+
+
+def preprocess_text(text: str) -> str:
+    """Preprocesses text for clustering.
+
+    Args:
+        text (str): Text to preprocess.
+
+    Returns:
+        str: Preprocessed text.
+    """
+
+    # Tokenize input text.
+    tokens = nltk.word_tokenize(text.lower(), language="german")
+
+    # Remove punctuation and numbers.
+    tokens = [word for word in tokens if word.isalpha()]
+
+    # Remove stopwords.
+    stop_words = set(stopwords.words("german"))
+    tokens = [word for word in tokens if word not in stop_words]
+
+    # Join the tokens back into a single string.
+    preprocessed_text = " ".join(tokens)
+
+    # Return preprocessed text.
+    return preprocessed_text
 
 def doc2vec(preprocessed_dict: dict) -> list: 
     """Apply doc2vec to preprocessed sample dict. 
@@ -155,22 +188,6 @@ def create_clustered_dictionary(cluster_labels: list, preprocessed_sample: dict)
     with open("clustered_dict_1.json", "w", encoding="utf-8") as file: 
         json.dump(clustered_dict_1, file, indent=2, ensure_ascii=False)
 
-def compute_silhoutte_score(document_vectors: list, cluster_labels: list) -> int:
-    """ Compute silhouette score.
-
-    Args:
-        document_vectors (list): List of document vectors.
-        cluster_labels (list): List of cluster labels. 
-
-    Returns:
-        int: Silhouette Score. 
-    """
-
-    # Compute average of silhouette score. 
-    silhouette_avg = silhouette_score(document_vectors, cluster_labels)
-
-    # Return average silhouette score. 
-    return silhouette_avg
 
 def visualize_clusters(document_vectors: list, cluster_labels: list, num_clusters: int, save_path: str) -> None: 
     """Visualize clusters in a scatter plot. 
@@ -207,19 +224,23 @@ def visualize_clusters(document_vectors: list, cluster_labels: list, num_cluster
 
 
 def main(): 
+
+    preprocessed_sample = {filename: preprocess_text(text) for filename, text in sample.items()}
     document_vectors = doc2vec(preprocessed_sample)
     cluster_labels = create_cluster_labels(document_vectors, num_clusters=2)
 
-    silhouette_score = compute_silhoutte_score(document_vectors, cluster_labels)
-
-    visualize_clusters(document_vectors, cluster_labels, num_clusters=2, save_path="cluster_plot.png")
+    visualize_clusters(document_vectors, cluster_labels, num_clusters=2, save_path=Path(Path(__file__).parent, "../results/clustering/cluster_plot.png"))
 
     create_clustered_dictionary(cluster_labels, preprocessed_sample)
 
     file_clusters = create_file_clusters(cluster_labels, preprocessed_sample)
-    return silhouette_score, file_clusters
+    return file_clusters
 
 if __name__ == "__main__": 
     score, file_clusters = main()
-    print(f"Silhouette Score: {score}")
     print(len(file_clusters[0]), len(file_clusters[1]))
+
+
+
+
+

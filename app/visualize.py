@@ -1,210 +1,249 @@
 import matplotlib.pyplot as plt
+
 from pathlib import Path
-
-import pandas as pd
-
 
 import json
 
-# detailed.
-path_detailed_with_eval = Path(Path(__file__).parent, "../results/experiment1_detailed_annotation/2_with_eval_ents.json")
-path_detailed_finetuned = Path(Path(__file__).parent, "../results/experiment1_detailed_annotation/2_finetuned_ents.json")
-path_detailed_transformers = Path(Path(__file__).parent, "../results/experiment1_detailed_annotation/transformers_ents.json")
+import numpy as np
 
-# broader.
-path_broader_with_eval = Path(Path(__file__).parent, "../results/experiment2_broader_annotation/2_with_eval_ents.json")
-path_broader_finetuned = Path(Path(__file__).parent, "../results/experiment2_broader_annotation/2_finetuned_ents.json")
-path_broader_transformers = Path(Path(__file__).parent, "../results/experiment2_broader_annotation/transformers_ents.json")
-
-# detailed save.
-save_path_detailed_with_eval = Path(Path(__file__).parent, "../results/graphs/experiment1_detailed_annotation/2_with_eval_ents")
-save_path_detailed_finetuned = Path(Path(__file__).parent, "../results/graphs/experiment1_detailed_annotation/2_finetuned")
-save_path_detailed_transformers = Path(Path(__file__).parent, "../results/graphs/experiment1_detailed_annotation/transformers")
-
-# broader.
-save_path_broader_with_eval = Path(Path(__file__).parent, "../results/graphs/experiment2_broader_annotation/2_with_eval_ents")
-save_path_broader_finetuned = Path(Path(__file__).parent, "../results/graphs/experiment2_broader_annotation/2_finetuned")
-save_path_broader_transformers = Path(Path(__file__).parent, "../results/graphs/experiment2_broader_annotation/transformers")
-
-
-
-
-# Define a function to read evaluation results from a JSON file.
-def read_evaluation_results(file_path: str) -> json:
-    """ Read in jsons-file with the results. 
+def open_json(path: str) -> dict:
+    """Open and read a json file.
 
     Args:
-        file_path (str): File path to the json-file. 
+        path (str): Path to json file.
 
     Returns:
-        json: Returns json with the content: results. 
-    """    
+        dict: Read in json file.
+    """ 
+    with open(path, "r") as f:
+        data = json.load(f)
+    return data
 
-    with open(file_path, "r") as json_file:
-        results = json.load(json_file)
-
-    return results
-
-
-def collecting_results(directory: str) -> pd.DataFrame:
-    """ Create DataFrame with the results of each experiment. 
+def extract_f1_scores(data: json) -> dict[str, float]:
+    """ Extract f1 scores of a result file. 
 
     Args:
-        directory (str): Path to directory where the json files are stored in. 
+        data (json): Data which the f1 scores should be extracted. 
 
     Returns:
-        pd.DataFrame: DataFrame with the results collected.
+        dict[str, float]: Dictionary with entity as key and f1 score as value. 
+    """  
+    entity_f1_scores = {}
+    # Iterate over all entities and save the f1 scores. 
+    for entity, scores in data["Entities per type"].items():
+        entity_f1_scores[entity] = scores["f"]
+    return entity_f1_scores
+
+def create_examples_in_confusion_matrix_form(labels: list[str], colors: list[str], save_path:str): 
+    """Create an example of an confusion matrix with a concrete word for each case
+
+    Args:
+        labels (list[str]): Labels serving as example. 
+        colors (list[str]): Colors of each corner. 
+        save_path (str): Path where plot should be saved. 
     """    
+    # Plotting.
+    plt.figure(figsize=(6, 6))
 
-    # Save directory path in Variable. 
-    results_directory = Path(directory)
+    # Add rectangles representing each outcome with the specified colors.
+    for label, color, x, y in zip(labels, colors, [0.5, 1.5, 1.5, 0.5], [0.5, 0.5, -0.5, -0.5]):
+        plt.fill([x-0.5, x+0.5, x+0.5, x-0.5], [y-0.5, y-0.5, y+0.5, y+0.5], color=color, alpha=0.5)
 
-    # List all JSON files in the directory.
-    json_files = [file for file in results_directory.glob("*.json")]
+        # Adding labels to each corner.
+        plt.text(x, y, label, ha="center", va="center", fontsize=13, color="black", fontweight="bold")
 
-    # Initialize an empty list to store the results.
-    all_results = []
+    # Remove axis.
+    plt.axis("off")
 
-    # Iterate through each json file and read the results.
-    for json_file in json_files:
-        file_path = str(json_file)
-        
-        results = read_evaluation_results(file_path)
-        # Add a column for the file name. 
-        results["File"] = json_file.name
-        # Append results to overall list. 
-        all_results.append(results)
+    # Ensures tight layout without dividing the image.
+    plt.tight_layout()  
 
-    # Convert the list of dictionaries into a pandas DataFrame.
-    df = pd.DataFrame(all_results)
+    plt.show()
 
-    return df
+    # Save figure. 
+    plt.savefig(save_path)
 
-def open_data(path: str) -> json: 
+def bar_entities(result1_path: json, result2_path: json, result3_path: json, save_path: str) -> None: 
+    """Create a bar plot for each entity performance in each model. 
+
+    Args:
+        result1_path (json): Results of the first model.
+        result2_path (json): Results of the second model.
+        result3_path (json): Results of the third model.
+        save_path (str): Path where plot should be saved. 
+    """    
+    # Open each result file. 
+    result1 = open_json(result1_path)
+    result2 = open_json(result2_path)
+    result3 = open_json(result3_path)
+
+    # Extract the f1 scores of each entity. 
+    f1_score1 = extract_f1_scores(result1)
+    f1_score2 = extract_f1_scores(result2)
+    f1_score3 = extract_f1_scores(result3)
+
+    # Combine f1 scores for all models into one dictionary.
+    all_entities = sorted(set().union(f1_score1.keys(), f1_score2.keys(), f1_score3.keys()))
+
+    # Plotting.
+    plt.figure(figsize=(14, 8))  
+
+    # Define bar properties.
+    bar_width = 0.25
+    opacity = 0.8  
+
+    # Plot bars.
+    r1 = np.arange(len(all_entities))
+    r2 = [x + bar_width for x in r1]
+    r3 = [x + bar_width for x in r2]
+
+    color_blank = "#FFA500"  # orange
+    color_lm = "#8ED1FC"  # blue
+    color_trf = "#2E8B57"  # green
+
+    plt.bar(r1, [f1_score1.get(entity, 0) for entity in all_entities], color=color_blank, width=bar_width, edgecolor="grey", label="blank LM model", alpha=opacity)
+    plt.bar(r2, [f1_score2.get(entity, 0) for entity in all_entities], color=color_lm, width=bar_width, edgecolor="grey", label="spaCy LM model", alpha=opacity)
+    plt.bar(r3, [f1_score3.get(entity, 0) for entity in all_entities], color=color_trf, width=bar_width, edgecolor="grey", label="Transformers LM model", alpha=opacity)
+
+    plt.xlabel("Entity Type", fontweight="bold", fontsize=14)
+    plt.ylabel("F1-score", fontweight="bold", fontsize=14)
+    plt.title("F1-score for Different Entity Types", fontweight="bold", fontsize=16)
+    plt.xticks([r + bar_width for r in range(len(all_entities))], all_entities, rotation=90, ha="center", fontsize=10)
+    plt.yticks(fontsize=10)
+
+    # Add grid lines.
+    plt.grid(axis="y", linestyle="--")
+
+    # Adjust y-axis limit.
+    plt.ylim(0, 1) 
+
+    plt.legend(fontsize=12)
+
+    # Save the plot as a PNG file with higher quality (dpi).
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=1000)  
+    plt.show()
+
+def bar_annotation_comparison(data1: json, data2: json, save_path: str):
+    
+    # Save keys sorted.
+    keys = sorted(data1.keys())
+    # Save the values.
+    values1 = [data1[key] for key in keys]
+    values2 = [data2[key] for key in keys]
+
+    # Plotting.
+    bar_width = 0.35
+    index = range(len(keys))
+
+    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)  
+
+    bars1 = plt.bar(index, values1, bar_width, label="t set", color="burlywood")  
+    bars2 = plt.bar([i + bar_width for i in index], values2, bar_width, label="s set", color="crimson")  
+
+    plt.xlabel("Entities", fontsize=12)  
+    plt.ylabel("Frequencies", fontsize=12)  
+    plt.title("Comparison of Annotation for set S and set T", fontsize=14)  
+    plt.xticks([i + bar_width/2 for i in index], keys, rotation=90, fontsize=10, ha="right")  
+    plt.yticks(fontsize=10)  
+    plt.grid(axis="y", linestyle="--", alpha=0.7)  
+
+    plt.legend()  
+
+    plt.tight_layout()  
+    plt.show()
+
+    plt.savefig(save_path)
+
+def bar_plot_one_data(data: json, save_path: str):
+    keys = sorted(data.keys())
+    values = [data[key] for key in keys]
+
+    bar_width = 0.35
+    index = range(len(keys))
+
+    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)  
+
+    bars = plt.bar(index, values, bar_width, label="Frequencies", color='burlywood')  
+
+    # Add text labels on top of each bar
+    for i, v in enumerate(values):
+        plt.text(i, v + 0.5, str(v), ha='center', va='bottom', fontsize=10)
+
+    plt.xlabel('Entities', fontsize=14)  
+    plt.ylabel('Frequency', fontsize=14)  
+    plt.title('Frequency for each entity after annotation', fontsize=16)  
+    plt.xticks(index, keys, rotation=90, fontsize=11, ha='right')  
+    plt.yticks(fontsize=10)  
+    plt.grid(axis='y', linestyle='--', alpha=0.7)  
+
+    plt.ylim(0, max(values) * 1.1)  
+
+    plt.legend()  
+
+    plt.tight_layout()  
+    plt.show()
+
+    plt.savefig(save_path)
+
+def main_bar_specific():
+    specific_blank_path = Path(Path(__file__).parent, "../results/exp1/specific_blank.json")
+    specific_ft_path = Path(Path(__file__).parent, "../results/exp1/specific_ft.json")
+    specific_trf_path = Path(Path(__file__).parent, "../results/exp1/specific_trf.json") 
+
+    save_path = Path(Path(__file__).parent, "../results/figures/bar_specific_entities.png")
+    bar_entities(specific_blank_path, specific_ft_path, specific_trf_path, save_path)
+
+def main_bar_general(): 
+    general_blank_path = Path(Path(__file__).parent, "../results/exp2/general_blank.json")
+    general_ft_path = Path(Path(__file__).parent, "../results/exp2/general_ft.json")
+    general_trf_path = Path(Path(__file__).parent, "../results/exp2/general_trf.json")
+
+    save_path = Path(Path(__file__).parent, "../results/figures/bar_general_entities.png")
+    bar_entities(general_blank_path, general_ft_path, general_trf_path, save_path)
+
+def main_bar_annotation_comparsion(): 
+    path = Path(Path(__file__).parent, "../results/annotation_comparison/entities.json")
 
     with open(path, "r") as f: 
         data = json.load(f)
+    
+    t_overall_count = data["t_overall_count"]
+    s_overall_count = data["s_overall_count"]
 
-    return data
+    save_path = Path(Path(__file__).parent, "../results/annotation_comparison/comparison.png")
+    bar_annotation_comparison(t_overall_count, s_overall_count, save_path)
 
+def main_bar_annotation_single():
+    path = Path(Path(__file__).parent, "../data/cross_validation/all_data.json")
 
-
-def create_bar_graph_entities(data: json, save_path: str) -> None: 
-
-    for entity, scores in data.items():
-        # Replace "/" with "_"
-        entity_filename = entity.replace("/", "_")
-
-        fig, ax = plt.subplots(figsize=(10,5))
-
-        bar_width = 0.2
-        index = range(3)
-        labels = ["Precision", "Recall", "F1 Score"]
-
-        
-        scores_list = [scores["p"], scores["r"], scores["f"]]
-        colors = ["blue", "green", "orange"]
-
-        bars = ax.bar(index, scores_list, bar_width, color=colors, label=entity)
-
-        for i, v in enumerate(scores_list): 
-            ax.text(i, v/2, str(round(v, 3)), ha="center", va="center", color="white")
-
-            ax.set_xlabel("Metrics.")
-            ax.set_ylabel("Scores.")
-            ax.set_title(f"{entity} - Precision, Recall, and F1 Score.")
-            ax.set_xticks([i for i in index])
-            ax.set_xticklabels(labels)
-        
-        save_path.mkdir(parents=True, exist_ok=True)
-
-        plt.savefig(f"{save_path}/{entity_filename}.png")
-
-
-# created 24.01.2024
-"""detailed_with_eval = open_data(path_detailed_with_eval)
-create_bar_graph_entities(detailed_with_eval, save_path_detailed_with_eval)
-
-detailed_finetuned = open_data(path_detailed_finetuned)
-create_bar_graph_entities(detailed_finetuned, save_path_detailed_finetuned)
-
-detailed_transformers = open_data(path_detailed_transformers)
-create_bar_graph_entities(detailed_transformers, save_path_detailed_transformers)
-
-broader_with_eval = open_data(path_broader_with_eval)
-create_bar_graph_entities(broader_with_eval, save_path_broader_with_eval)
-
-broader_finetuned = open_data(path_broader_finetuned)
-create_bar_graph_entities(broader_finetuned, save_path_broader_finetuned)
-
-broader_transformers = open_data(path_broader_transformers)
-create_bar_graph_entities(broader_transformers, save_path_broader_transformers)"""
-
-
-
-# Directory containing your data files
-exp1_with_eval = Path(Path(__file__).parent, "../results/experiment1_detailed_annotation/2_with_eval_ents.json")
-exp1_finetuned = Path(Path(__file__).parent, "../results/experiment1_detailed_annotation/2_finetuned_ents.json")
-exp1_transformers = Path(Path(__file__).parent, "../results/experiment1_detailed_annotation/transformers_ents.json")
-
-exp2_with_eval = Path(Path(__file__).parent, "../results/experiment2_broader_annotation/2_with_eval_ents.json")
-exp2_finetuned = Path(Path(__file__).parent, "../results/experiment2_broader_annotation/2_finetuned_ents.json")
-exp2_transformers = Path(Path(__file__).parent, "../results/experiment2_broader_annotation/transformers_ents.json")
-
-save_path_1_with_eval_fscore = Path(Path(__file__).parent, "../results/graphs/exp1_with_eval_fscore.png")
-save_path_1_finetuned_fscore = Path(Path(__file__).parent, "../results/graphs/exp1_finetuned_fscore.png")
-save_path_1_transformers_fscore = Path(Path(__file__).parent, "../results/graphs/exp1_transformers_fscore.png")
-
-save_path_2_with_eval_fscore = Path(Path(__file__).parent, "../results/graphs/exp2_with_eval_fscore.png")
-save_path_2_finetuned_fscore = Path(Path(__file__).parent, "../results/graphs/exp2_finetuned_fscore.png")
-save_path_2_transformers_fscore = Path(Path(__file__).parent, "../results/graphs/exp2_transformers_fscore.png")
-
-def create_bar_graph_over_all_files(dir: str, save_path: str, color: str) -> None: 
-
-    with open(dir, "r") as f: 
+    with open(path, "r") as f: 
         data = json.load(f)
-                      
-    f1_scores = []
-    precision_scores = []
-    recall_scores = []
-    entity_names = []
+    
+    t_overall_count = data["t_overall_count"]
+
+    save_path = Path(Path(__file__).parent, "../results/annotation_comparison/comparison_single.png")
+    bar_plot_one_data(t_overall_count, save_path)
 
 
-    for entity, scores in data.items():
-        entity_names.append(entity) 
-        f1_scores.append(scores["f"])
-        precision_scores.append(scores["p"])
-        recall_scores.append(scores["r"])
+def main_ex_confusion_matrix(): 
+
+    # Define the labels for each corner.
+    labels = ["True Positive:\nHannover", "True Negative:\nBundespersonalausweis", "False Positive:\nAmtsgericht Hildesheim", "False Negative:\nHRB 22640"]
+
+    # Define the colors for each corner.
+    colors = ["green", "green", "red", "red"]
+
+    create_examples_in_confusion_matrix_form(labels, colors, Path(Path(__file__).parent, "../results/figures/example_confusion_matrix.png"))
 
 
-    # Create a subplot for F1 scores
-    fig, ax1 = plt.subplots(figsize=(10, 18))
-    bars = ax1.bar(entity_names, f1_scores, color=color)
-    ax1.set_xlabel("Entity Names")
-    ax1.set_ylabel("F1 Scores", color='blue')
-    ax1.tick_params(axis='y', labelcolor='blue')
-    ax1.set_title("F1 Scores for Each Entity")
-
-
-    # Rotate x-axis labels for better readability
-    plt.xticks(rotation=90)
-
-    for bar, value in zip(bars, f1_scores):
-        plt.text(bar.get_x() + bar.get_width() / 2 - 0.1, bar.get_height() + 0.01, f'{value:.2f}', ha='center', color='black')
-
-    # Save the figure as an image
-    plt.tight_layout()
-    plt.savefig(save_path)
+if __name__ == "__main__": 
+    main_bar_annotation_single()
 
 
 
 
-create_bar_graph_over_all_files(exp1_with_eval, save_path_1_with_eval_fscore, color="blue")
-create_bar_graph_over_all_files(exp1_finetuned, save_path_1_finetuned_fscore, color="green")
-create_bar_graph_over_all_files(exp1_transformers, save_path_1_transformers_fscore, color="orange")
+"""
+bar_plot(t_overall_count, s_overall_count)
 
-create_bar_graph_over_all_files(exp2_with_eval, save_path_2_with_eval_fscore, color="blue")
-create_bar_graph_over_all_files(exp2_finetuned, save_path_2_finetuned_fscore, color="green")
-create_bar_graph_over_all_files(exp2_transformers, save_path_2_transformers_fscore, color="orange")
-            
-
+"""

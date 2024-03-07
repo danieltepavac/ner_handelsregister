@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-s_sorted_annotation = Path(Path(__file__).parent, "../data/annotation_comparison/selina_sorted_tuple_annotation.json")
-t_sorted_annotation = Path(Path(__file__).parent, "../data/annotation_comparison/teppi_sorted_tuple_annotation.json")
+import matplotlib.pyplot as plt
+
 
 def jaccard_similarity(path1: str, path2: str) -> float:
     """ Compute Jaccard Similarity for two annoated datasets to see how similar annotated they are.
@@ -52,43 +52,78 @@ def jaccard_similarity(path1: str, path2: str) -> float:
     return similarity
 
 
-def count_entities(path: str) -> int: 
+def count_individual_entities(path: str) -> dict[str, int]: 
+    """Count the occurances of each respective entity.
 
+    Args:
+        path (str): Path to the file of which entities should be counted.
+
+    Returns:
+        dict [str, int]: Dictionary with entity as key and the number of occurances as value.  
+    """    
+    # Open data. 
     with open(path, "r") as f: 
         data = json.load(f)
     
-    list_of_entities = []
-    
-    for i in data: 
+    # Create empty dict
+    overall_entities_count = {}
 
-        for key, value in i.items(): 
-            if key == "entities": 
-                for entity in value: 
-                    list_of_entities.append(entity)
-    
-    return list_of_entities
+    # Iterate over each document. 
+    for doc in data: 
+        # Create empty temp dict. 
+        entity_count = {}
+
+        # Take the entities..
+        entities = doc.get("entities")
+
+        # .. and iterate over them. 
+        for ent in entities: 
+            # Count each instance of each entity. 
+            for i in ent: 
+                if isinstance(i, str): 
+                    if i in entity_count: 
+                        entity_count[i] += 1
+                    else: 
+                        entity_count[i] = 1
+
+        # Append each entity count to the overall dict. 
+        for entity, count in entity_count.items(): 
+            overall_entities_count[entity] = overall_entities_count.get(entity, 0) + count
+
+    # Return the overall entity count. 
+    return overall_entities_count
+
+def main(): 
+
+    s_sorted_annotation = Path(Path(__file__).parent, "../data/annotation_comparison/s_sorted_tuple_annotation.json")
+    t_sorted_annotation = Path(Path(__file__).parent, "../data/annotation_comparison/t_sorted_tuple_annotation.json")
+
+    similarity = jaccard_similarity(s_sorted_annotation, t_sorted_annotation)
+
+    t_overall_count = count_individual_entities(t_sorted_annotation)
+    s_overall_count = count_individual_entities(s_sorted_annotation)
+
+    result = {
+        "t_overall_count": t_overall_count,
+        "s_overall_count": s_overall_count,
+        "jaccard_similarity": similarity
+    }
+
+    with open(Path(Path(__file__).parent, "../results/annotation_comparison/entities.json"), "w", encoding="utf-8") as f: 
+        json.dump(result, f, indent=2, ensure_ascii=False)
+
+def main_single():
+    path = Path(Path(__file__).parent, "../data/1000_annotation.json")
+
+    overall_count = count_individual_entities(path)
+
+    with open(Path(Path(__file__).parent, "../results/annotation_comparison/entities_single.json"), "w", encoding="utf-8") as f:
+        json.dump(overall_count, f, indent=2, ensure_ascii=False) 
 
 
 
-
-t_count = count_entities(t_sorted_annotation)
-s_count = count_entities(s_sorted_annotation)
-
-print(len(t_count), len(s_count))
-
-
-similarity = jaccard_similarity(s_sorted_annotation, t_sorted_annotation)
-print(f"Jaccard Similarity: {similarity}")
-
-# Save to JSON
-json_data = {"Jaccard Similarity": similarity}
-
-json_file_path = Path(Path(__file__).parent, "../results/jaccard_similarity.json")
-
-with open(json_file_path, 'w') as json_file:
-    json.dump(json_data, json_file)
-
-
+if __name__ == "__main__": 
+    main_single()
 
 
 

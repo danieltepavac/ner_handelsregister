@@ -1,13 +1,15 @@
 # Import spacy and displacy.
 import spacy
 from spacy import displacy 
-
+from PIL import Image
 from pathlib import Path
+from io import BytesIO
 
+from IPython.display import Image, display
 # First try: Load German LM. 
 NER = spacy.load("de_core_news_lg")
 
-model_dir2 = Path(Path(__file__).parents[1], "../models/cross_validation/d1/best_model_fold_1.spacy")
+model_dir2 = Path(Path(__file__).parent, "../new_models/detailed/lm_val")
 
 NER2 = spacy.load(model_dir2)
 
@@ -18,7 +20,7 @@ example2 = "Amtsgericht Jena - Handelsregister - Rathenaustraße 13 07745 Jena H
 example3 = "Nr. 143 der Urkundenrolle Jahrgang 2019 Vor mir, dem unterzeichnenden Verhandelt zu Hannover, am 10. Mai 2019 erschien heute: Notar Dr. Nikolas v. Wrangell mit dem Amtssitz in 30175 Hannover, Adenauerallee 8, Frau Maren Fischer, geb. am 16.01.1969, wohnhaft Örtzeweg 8, 31303 Burgdorf, ausgewiesen durch gültigen Bundespersonalausweis, handelnd nicht für sich persönlich, sondern in ihrer Eigenschaft als einzelvertre- tungsberechtigte und von den Beschränkungen des § 181 BGB befreite Geschäfts- führerin der Gessert Verwaltungs GmbH, mit dem Sitz in Burgdorf, eingetragen im Handelsregister des Amtgerichts Hildesheim unter HRB 22640, diese wiederum han- delnd für die Gessert GmbH & Co. KG., mit dem Sitz in Burgdorf eingetragen im Handelsregister des Amtsgerichts Hildesheim unter HRA 21264. Der amtierende Notar bescheinigt aufgrund Einsichtnahme vom 08.05.2019 in das elektronisch geführte Handelsregister des Amtsgerichts Hildesheim zu HRB 22640, dass die Erschienene dort als einzelvertretungsberechtigte und von den Beschrän- kungen des § 181 BGB befreite Geschäftsführerin eingetragen ist. Der amtierende Notar bescheinigt weiterhin aufgrund Einsichtnahme vom 08.05.2019 in das elektro- nisch geführte Handelsregister des Amtsgerichts Hildesheim zu HRA 21264, dass die Vertretene zu 1. dort als persönlich haftende Gesellschafterin eingetragen ist. \/ 2"
 
 # Apply NER on example.
-NER_example = NER(example3)
+NER_example = NER2(example3)
 
 # Show each recognized entity + its label.
 for word in NER_example.ents:
@@ -30,5 +32,6 @@ displacy.serve(NER_example, style="ent")
 
 # Show how the text is marked up. In Notebook:
 displacy.render(NER_example, style="ent")  
+
 
 # Result: It does work but not every recognized entity is an entity.
