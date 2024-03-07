@@ -1,7 +1,7 @@
 This project deals with the recognition of Named Entities in documents of the German commercial register. 
 It was carried out as part of the master's thesis "Named Entitiy Recognition on German commercial register documents" at the University of Regensburg. 
 
-Abstract: 
+Abstract: <br>
 This study explores Named Entity Recognition (NER) in documents from the German commercial register, made accessible following a decision by the European Court of Justice. Various Language Models were trained for NER, utilizing specific and general annotations tailored to the register's documents. Prior to training, comprehensive data analysis and annotation were conducted to establish a gold standard. The findings highlight the crucial role of data quality in NER performance, emphasizing the significance of thorough annotation. Surprisingly, the choice of Language Model proved less decisive than anticipated, with the data itself emerging as the primary determinant of performance. Notably, models trained on more general annotations consistently outperformed those trained on specific ones which is supported by significant results from a Wilcoxon signed-pair test. To ensure the robustness of the findings, a Cross-Validation procedure was employed, guarding against chance learning or overfitting. Through this approach,the reliability of the results is affirmed and underscore the importance of thorough data preparation in NER tasks.
 
 Usage: 
